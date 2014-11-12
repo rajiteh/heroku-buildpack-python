@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+
+WHITELIST=${2:-''}
+BLACKLIST=${3:-'^(GIT_DIR|PYTHONHOME|LD_LIBRARY_PATH|LIBRARY_PATH|PATH)$'}
+
+(
+	if [ -d "$ENV_DIR" ]; then
+		LOCAL_PY=$BUILD_DIR/settings/local.py
+		if [ -f "$LOCAL_PY"]; then
+			echo "# Generated env vars" >> $LOCAL_PY
+			for e in $(ls $ENV_DIR); do
+				echo "$e" | grep -E "$WHITELIST" | grep -qvE "$BLACKLIST" &&
+				echo "$e=$(cat $ENV_DIR/$e)" >> $LOCAL_PY 
+				:
+			done
+			echo "# End generated env vars" >> $LOCAL_PY
+		else
+			puts-warn 'Could not find local.py in the build path.'
+		fi
+	fi	
+)
